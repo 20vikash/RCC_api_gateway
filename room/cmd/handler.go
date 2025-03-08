@@ -42,9 +42,11 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		rcns := roomConns[room]
 
 		for _, conn := range rcns {
-			if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-				fmt.Println("write error:", err)
-				break
+			if ws != conn {
+				if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+					fmt.Println("write error:", err)
+					break
+				}
 			}
 		}
 	}
