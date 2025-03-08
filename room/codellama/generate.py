@@ -1,4 +1,4 @@
-import requests # type: ignore
+import requests
 import sys
 
 def generate_code(prompt, language="Python"):
@@ -16,7 +16,7 @@ def generate_code(prompt, language="Python"):
         return response.json().get("response", "").strip()
     else:
         return f"Error: {response.status_code}, {response.text}"
-    
+
 args = sys.argv[1:]
 
 code = generate_code(args[0], args[1])
