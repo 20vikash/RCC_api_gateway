@@ -19,7 +19,13 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	defer ws.Close()
 
 	roomID := r.URL.Query().Get("roomid")
-	roomConns[roomID] = append(roomConns[roomID], ws)
+
+	_, exists := roomConns[roomID]
+	if !exists {
+		roomConns[roomID] = []*websocket.Conn{ws}
+	} else {
+		roomConns[roomID] = append(roomConns[roomID], ws)
+	}
 
 	for {
 		_, msg, err := ws.ReadMessage()
