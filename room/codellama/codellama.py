@@ -1,4 +1,5 @@
 import requests # type: ignore
+import sys
 
 def generate_code(prompt, language="Python"):
     OLLAMA_API_URL = "http://localhost:11434/api/generate"
@@ -15,8 +16,10 @@ def generate_code(prompt, language="Python"):
         return response.json().get("response", "").strip()
     else:
         return f"Error: {response.status_code}, {response.text}"
+    
+args = sys.argv[1:]
 
-code = generate_code("Sort a list of numbers without inbuilt functions", "Python")
+code = generate_code(args[0], args[1])
 lines = code.split("\n")
 
 res = ""

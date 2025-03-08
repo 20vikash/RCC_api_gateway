@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os/exec"
 	"strings"
 
 	"github.com/gorilla/websocket"
@@ -67,4 +70,34 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+type CodeResponse struct {
+	Code string
+}
+
+func generate(w http.ResponseWriter, r *http.Request) {
+	prompt := r.URL.Query().Get("prompt")
+	langauge := r.URL.Query().Get("language")
+
+	cmd := exec.Command("python3", "../codellama/codellama.py", prompt, langauge)
+
+	var stdOut bytes.Buffer
+	cmd.Stdout = &stdOut
+
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err)
+	}
+
+	res := &CodeResponse{
+		Code: stdOut.String(),
+	}
+
+	jm, err := json.Marshal(res)
+	if err != nil {
+		log.Println(err)
+	}
+
+	w.Write(jm)
 }
