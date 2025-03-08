@@ -79,6 +79,9 @@ type CodeResponse struct {
 func generate(w http.ResponseWriter, r *http.Request) {
 	prompt := r.URL.Query().Get("prompt")
 	langauge := r.URL.Query().Get("language")
+	roomID := r.URL.Query().Get("id")
+
+	changes[roomID] = changes[roomID][:0]
 
 	cmd := exec.Command("python3", "../codellama/codellama.py", prompt, langauge)
 
