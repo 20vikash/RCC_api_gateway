@@ -73,7 +73,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 type CodeResponse struct {
-	Code string
+	Code string `json:"code"`
 }
 
 func generate(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,41 @@ func generate(w http.ResponseWriter, r *http.Request) {
 
 	changes[roomID] = changes[roomID][:0]
 
-	cmd := exec.Command("python3", "../codellama/codellama.py", prompt, langauge)
+	cmd := exec.Command("python3", "../codellama/generate.py", prompt, langauge)
+
+	var stdOut bytes.Buffer
+	cmd.Stdout = &stdOut
+
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err)
+	}
+
+	res := &CodeResponse{
+		Code: stdOut.String(),
+	}
+
+	jm, err := json.Marshal(res)
+	if err != nil {
+		log.Println(err)
+	}
+
+	w.Write(jm)
+}
+
+func debugCode(w http.ResponseWriter, r *http.Request) {
+	roomID := r.URL.Query().Get("id")
+
+	var codeData CodeResponse
+
+	changes[roomID] = changes[roomID][:0]
+
+	if err := json.NewDecoder(r.Body).Decode(&codeData); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	cmd := exec.Command("python3", "../codellama/debug.py", codeData.Code)
 
 	var stdOut bytes.Buffer
 	cmd.Stdout = &stdOut

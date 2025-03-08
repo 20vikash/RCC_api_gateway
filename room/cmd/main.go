@@ -25,6 +25,7 @@ func main() {
 
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/generate", generate)
+	http.HandleFunc("/debug", debugCode)
 
 	fmt.Println("Server started on http://localhost:6969")
 	err := http.ListenAndServe(":"+app.Port, nil)
