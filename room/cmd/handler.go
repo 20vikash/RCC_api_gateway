@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +10,7 @@ import (
 )
 
 var roomConns = make(map[string][]*websocket.Conn)
+var changes = make(map[string][]string)
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -39,7 +41,22 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		s := strings.Split(m, "~")
 		room, message := s[0], s[1]
 
+		if message == "load" {
+			if len(changes[room]) > 0 {
+				history, _ := json.Marshal(changes[room])
+				if err := ws.WriteMessage(websocket.TextMessage, history); err != nil {
+					fmt.Println("write error:", err)
+					return
+				}
+				continue
+			}
+		}
+
 		rcns := roomConns[room]
+
+		if message != "load" {
+			changes[roomID] = append(changes[roomID], message)
+		}
 
 		for _, conn := range rcns {
 			if ws != conn {
