@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Code Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e2e, #252535);
+        }
+        .editor-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            border: 2px solid #3a3a4a;
+        }
+        .language-selector {
+            background: linear-gradient(135deg, #3a3a4a, #50505f);
+            border: 2px solid #636374;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease-in-out;
+        }
+        .language-selector:hover {
+            background: linear-gradient(135deg, #50505f, #6b6b7f);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen text-white">
+    <div class="w-4/5 h-4/5 bg-gray-800 rounded-xl shadow-2xl p-6 flex flex-col editor-container">
+        <h1 class="text-2xl font-bold text-center mb-4 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">Real-Time Code Editor</h1>
+        
+        <div class="mb-4 flex justify-center items-center">
+            <label for="language" class="mr-3 text-lg font-semibold">Choose Language:</label>
+            <select id="language" class="language-selector">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+            </select>
+        </div>
+
+        <div id="editor" class="w-full flex-grow border border-gray-700 rounded-md"></div>
+    </div>
+    
+    <script>
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+        require(["vs/editor/editor.main"], function () {
+            let editor = monaco.editor.create(document.getElementById("editor"), {
+                value: "// Start coding...\nconsole.log('Hello, world!');",
+                language: "javascript",
+                theme: "vs-dark",
+                fontSize: 16,
+                minimap: { enabled: false },
+                automaticLayout: true
+            });
+
+            document.getElementById("language").addEventListener("change", function(event) {
+                let newLang = event.target.value;
+                monaco.editor.setModelLanguage(editor.getModel(), newLang);
+            });
+
+            editor.onDidChangeModelContent((event) => {
+                console.log(event)
+                let updatedCode = editor.getValue();
+                console.log("Editor content changed:", updatedCode);
+            });
+        });
+    </script>
+</body>
+</html>
