@@ -1,0 +1,36 @@
+import requests # type: ignore
+
+def generate_code(prompt, language="Python"):
+    OLLAMA_API_URL = "http://localhost:11434/api/generate"
+
+    payload = {
+        "model": "codellama:latest",
+        "prompt": f"{prompt}.\nGenerate a code for this in {language}.",
+        "stream": False
+    }
+
+    response = requests.post(OLLAMA_API_URL, json=payload)
+    
+    if response.status_code == 200:
+        return response.json().get("response", "").strip()
+    else:
+        return f"Error: {response.status_code}, {response.text}"
+
+code = generate_code("Sort a list of numbers without inbuilt functions", "Python")
+lines = code.split("\n")
+
+res = ""
+
+record = False
+for line in lines:
+    if line == "```" and not record:
+        record = True
+        continue
+    elif line == "```" and record:
+        record = False
+        break
+    
+    if record:
+        res += line + "\n"
+
+print(res)
