@@ -17,14 +17,17 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	app := &Application{
-		Port: ":69",
+		Port: "6969",
 	}
+
+	fs := http.FileServer(http.Dir("../web"))
+	http.Handle("/", fs)
 
 	http.HandleFunc("/ws", handleConnections)
 
-	fmt.Println("WebSocket server started on :69")
-	err := http.ListenAndServe(app.Port, nil)
+	fmt.Println("Server started on http://localhost:6969")
+	err := http.ListenAndServe(":"+app.Port, nil)
 	if err != nil {
-		fmt.Println("ListenAndServe:", err)
+		fmt.Println("ListenAndServe Error:", err)
 	}
 }

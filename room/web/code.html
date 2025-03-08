@@ -54,10 +54,46 @@
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get("username");
         const roomId = urlParams.get("room");
-
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+    
+        const socket = new WebSocket(`ws://localhost:6969/ws?roomid=${roomId}`);
+    
+        socket.onopen = () => {
+            console.log("Connected to WebSocket");
+        };
+    
+        socket.onerror = (error) => {
+            console.error("WebSocket Error:", error);
+        };
+    
+        socket.onmessage = (event) => {
+            console.log("Received:", event.data);
+            let data = JSON.parse(event.data);
+    
+            if (data.type === "update") {
+                applyChanges(data.changes);
+            }
+        };
+    
+        function sendChanges(changes) {
+            socket.send(JSON.stringify({ type: "update", changes }));
+        }
+    
+        function applyChanges(changes) {
+            editor.executeEdits("remote", changes.map(change => ({
+                range: new monaco.Range(
+                    change.range.startLineNumber,
+                    change.range.startColumn,
+                    change.range.endLineNumber,
+                    change.range.endColumn
+                ),
+                text: change.text,
+                forceMoveMarkers: true
+            })));
+        }
+    
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
         require(["vs/editor/editor.main"], function () {
-            let editor = monaco.editor.create(document.getElementById("editor"), {
+            window.editor = monaco.editor.create(document.getElementById("editor"), {
                 value: "// Start coding...\nconsole.log('Hello, world!');",
                 language: "javascript",
                 theme: "vs-dark",
@@ -65,18 +101,27 @@
                 minimap: { enabled: false },
                 automaticLayout: true
             });
-
-            document.getElementById("language").addEventListener("change", function(event) {
+    
+            document.getElementById("language").addEventListener("change", function (event) {
                 let newLang = event.target.value;
                 monaco.editor.setModelLanguage(editor.getModel(), newLang);
             });
-
+    
             editor.onDidChangeModelContent((event) => {
-                console.log(event)
-                let updatedCode = editor.getValue();
-                console.log("Editor content changed:", updatedCode);
+                let changes = event.changes.map(change => ({
+                    range: {
+                        startLineNumber: change.range.startLineNumber,
+                        startColumn: change.range.startColumn,
+                        endLineNumber: change.range.endLineNumber,
+                        endColumn: change.range.endColumn
+                    },
+                    text: change.text
+                }));
+    
+                sendChanges(changes);
             });
         });
     </script>
+    
 </body>
 </html>
