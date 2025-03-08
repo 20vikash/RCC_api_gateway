@@ -58,7 +58,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get("room");
     
-        const socket = new WebSocket(`ws://localhost:6969/ws?roomid=${roomId}`);
+        const socket = new WebSocket(`ws://192.168.29.119:6969/ws?roomid=${roomId}`);
     
         socket.onopen = async () => {
             console.log("Connected to WebSocket");
