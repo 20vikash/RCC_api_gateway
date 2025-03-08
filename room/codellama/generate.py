@@ -5,7 +5,7 @@ def generate_code(prompt, language="Python"):
     OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
     payload = {
-        "model": "codellama:latest",
+        "model": "codellama:13b",
         "prompt": f"{prompt}.\nGenerate a code for this in {language}.",
         "stream": False
     }
@@ -22,18 +22,15 @@ args = sys.argv[1:]
 code = generate_code(args[0], args[1])
 lines = code.split("\n")
 
-res = ""
-
+res = []
 record = False
+
 for line in lines:
-    if line == "```" and not record:
-        record = True
+    if line.startswith("```"):
+        record = not record
         continue
-    elif line == "```" and record:
-        record = False
-        break
     
     if record:
-        res += line + "\n"
+        res.append(line)
 
-print(res)
+print("\n".join(res))

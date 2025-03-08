@@ -1,13 +1,13 @@
 import requests
 import sys
 
-def debug_code(code):
-    prompt = f"Fix the bug in this code if there is any\n{code}\n"
+def debug_code(code, language):
+    prompt = f"Fix the bug in this code in {language} programming language if there is any and give only the code in triple backticks at the start without explanation\n{code}\n"
 
     OLLAMA_API_URL = "http://localhost:11434/api/generate"
 
     payload = {
-        "model": "codellama:latest",
+        "model": "codellama:13b",
         "prompt": prompt,
         "stream": False
     }
@@ -21,21 +21,18 @@ def debug_code(code):
 
 args = sys.argv[1:]
 
-code = debug_code(args[0])
+code = debug_code(args[0], args[1])
 lines = code.split("\n")
 
-res = ""
-
+res = []
 record = False
+
 for line in lines:
-    if line == "```" and not record:
-        record = True
+    if line.startswith("```"):
+        record = not record
         continue
-    elif line == "```" and record:
-        record = False
-        break
     
     if record:
-        res += line + "\n"
+        res.append(line)
 
-print(res)
+print("\n".join(res))

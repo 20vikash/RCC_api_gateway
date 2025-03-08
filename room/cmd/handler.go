@@ -107,6 +107,7 @@ func generate(w http.ResponseWriter, r *http.Request) {
 
 func debugCode(w http.ResponseWriter, r *http.Request) {
 	roomID := r.URL.Query().Get("id")
+	language := r.URL.Query().Get("language")
 
 	var codeData CodeResponse
 
@@ -117,7 +118,7 @@ func debugCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := exec.Command("python3", "../codellama/debug.py", codeData.Code)
+	cmd := exec.Command("python3", "../codellama/debug.py", codeData.Code, language)
 
 	var stdOut bytes.Buffer
 	cmd.Stdout = &stdOut

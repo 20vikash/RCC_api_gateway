@@ -151,7 +151,7 @@
             await monacoReady
 
             try {
-                const response = await fetch(`http://localhost:6969/debug?id=${encodeURIComponent(roomId)}`, {
+                const response = await fetch(`http://localhost:6969/debug?id=${encodeURIComponent(roomId)}&language=${encodeURIComponent(language)}`, {
                     method: "POST",
                     body: JSON.stringify({
                         code: editor.getValue(),
