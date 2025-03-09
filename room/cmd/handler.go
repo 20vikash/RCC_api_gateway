@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -140,6 +141,76 @@ func debugCode(w http.ResponseWriter, r *http.Request) {
 	w.Write(jm)
 }
 
-func output(code, language string) {
+type OutputResponse struct {
+	Output string
+}
 
+func output(w http.ResponseWriter, r *http.Request) {
+	language := r.URL.Query().Get("language")
+	roomId := r.URL.Query().Get("id")
+	userName := r.URL.Query().Get("username")
+
+	var codeData CodeResponse
+	var output OutputResponse
+
+	var res string
+
+	if err := json.NewDecoder(r.Body).Decode(&codeData); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	code := codeData.Code
+
+	if language == "cpp" || language == "c" {
+		res = outputCCpp(roomId, userName, language, code)
+	} else if language == "python" {
+
+	}
+
+	output = OutputResponse{Output: res}
+	j, err := json.Marshal(output)
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusInternalServerError)
+	}
+
+	w.Write(j)
+}
+
+func outputCCpp(roomId string, userName string, language string, code string) string {
+	var cmd *exec.Cmd
+	var stdErr bytes.Buffer
+	var stdOut bytes.Buffer
+	var res string
+
+	if language == "cpp" {
+		language = "c++"
+	}
+
+	fileName := roomId + userName
+
+	cmd = exec.Command("g++", "-x", language, "-", "-o", fileName)
+	cmd.Stdin = bytes.NewBufferString(code)
+	cmd.Stderr = &stdErr
+
+	err := cmd.Run()
+	if err != nil {
+		res = stdErr.String()
+		return res
+	}
+
+	defer os.Remove(fileName)
+
+	cmd = exec.Command("./" + fileName)
+	cmd.Stdout = &stdOut
+	cmd.Stderr = &stdErr
+
+	err = cmd.Run()
+	if err != nil {
+		res = stdErr.String()
+		return res
+	} else {
+		res = stdOut.String()
+		return res
+	}
 }
