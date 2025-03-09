@@ -228,8 +228,8 @@ require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-e
 monacoReady = new Promise((resolve) => {
     require(["vs/editor/editor.main"], function () {
         window.editor = monaco.editor.create(document.getElementById("editor"), {
-            value: "// Start coding...\nconsole.log('Hello, world!');",
-            language: "javascript",
+            value: "// Start coding...\nprint('Hello world')",
+            language: "python",
             theme: "vs-dark",
             fontSize: 16,
             minimap: { enabled: false },

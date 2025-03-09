@@ -241,7 +241,7 @@ func outputPython(code string) string {
 	err := cmd.Run()
 
 	if err != nil {
-		if err == err.(*exec.ExitError) {
+		if err == err.(*exec.ExitError) && stdErr.String() == "" {
 			return "Took too long to generate the output"
 		}
 		return stdErr.String()
