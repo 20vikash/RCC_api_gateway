@@ -139,3 +139,7 @@ func debugCode(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(jm)
 }
+
+func output(code, language string) {
+
+}
