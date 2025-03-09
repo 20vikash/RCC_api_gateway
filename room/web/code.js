@@ -151,6 +151,11 @@ document.getElementById("insertCode").addEventListener("click", async () => {
 
     const prompt = document.getElementById("generatedCode").value;
     const language = document.getElementById("language").value;
+    const globalLoader = document.getElementById('globalLoader');
+    const modal = document.getElementById("modal");
+
+    globalLoader.classList.remove("hidden");
+    closeAllExceptLoader();
 
     try {
         const response = await fetch(`http://localhost:6969/generate?prompt=${encodeURIComponent(prompt)}&language=${encodeURIComponent(language)}&id=${encodeURIComponent(roomId)}`);
@@ -158,13 +163,15 @@ document.getElementById("insertCode").addEventListener("click", async () => {
 
         if (data.code) {
             window.editor.setValue(data.code);
-            document.getElementById("modal").classList.remove("active");
+            modal.classList.remove("active");
         } else {
             alert("Failed to generate code. Please try again.");
         }
     } catch (error) {
         console.error("Error fetching generated code:", error);
         alert("Error connecting to the server.");
+    } finally {
+        globalLoader.classList.add("hidden");
     }
 });
 
@@ -172,6 +179,10 @@ document.getElementById("debugCode").addEventListener("click", async () => {
     await monacoReady;
 
     const language = document.getElementById("language").value;
+
+    const globalLoader = document.getElementById('globalLoader');
+    globalLoader.classList.remove("hidden");
+    closeAllExceptLoader();
 
     try {
         const response = await fetch(`http://localhost:6969/debug?id=${encodeURIComponent(roomId)}&language=${encodeURIComponent(language)}`, {
@@ -193,8 +204,19 @@ document.getElementById("debugCode").addEventListener("click", async () => {
     } catch (error) {
         console.error("Error fetching debugged code:", error);
         alert("Error connecting to the server.");
+    } finally {
+        globalLoader.classList.add("hidden");
     }
 });
+
+function closeAllExceptLoader() {
+    document.getElementById("modal").classList.remove("active");
+    document.getElementById("terminalContainer").classList.remove("active");
+    document.querySelector(".chat-container").classList.remove("active");
+    chatToggle.style.opacity = '1';
+    chatToggle.style.visibility = 'visible';
+}
+
 
 socket.onopen = async () => {
     console.log("Connected to WebSocket");

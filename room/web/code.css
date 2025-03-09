@@ -318,3 +318,20 @@ body {
     transform: scale(0.95);
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.4);
 }
+
+#globalLoader {
+    backdrop-filter: blur(5px);
+}
+
+.modal.active {
+    z-index: 100;
+}
+
+.button {
+    transition: all 0.2s ease;
+}
+
+.button:hover {
+    transform: translateY(-1px);
+    filter: brightness(110%);
+}
