@@ -130,6 +130,96 @@
             cursor: pointer;
             z-index: 1001;
         }
+        .chat-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        background: #2a2a3a;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1001;
+    }
+
+    .chat-container.active {
+        transform: translateY(0);
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #3a3a4a, #50505f);
+        padding: 12px;
+        border-radius: 12px 12px 0 0;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-messages {
+        height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        border-top: 2px solid #4a5568;
+    }
+
+    .chat-input input {
+        flex: 1;
+        background: #1e1e2e;
+        border: none;
+        color: white;
+        padding: 8px;
+        border-radius: 6px;
+        margin-right: 8px;
+    }
+
+    .chat-toggle {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #3a3a4a;
+        border: none;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        z-index: 1002;
+        transition: all 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .chat-toggle:hover {
+        transform: scale(1.1);
+        background: #50505f;
+    }
+
+    .chat-container.active + .chat-toggle {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .message {
+        background: #1e1e2e;
+        padding: 8px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        max-width: 80%;
+    }
+
+    .message.self {
+        background: #3a3a4a;
+        margin-left: auto;
+    }
     </style>
 </head>
 <body class="flex items-center justify-center h-screen text-white">
@@ -177,7 +267,21 @@
         <div id="terminal"></div>
     </div>
 
+    <div class="chat-container">
+        <div class="chat-header">
+            <span>Chat</span>
+            <button class="button" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type your message...">
+            <button class="button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <button class="chat-toggle">💬</button>
+
     <script src="code.js"></script>
+    
     
 </body>
 </html>

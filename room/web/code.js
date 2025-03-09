@@ -1,6 +1,20 @@
 let me = true;
 let monacoReady;
 
+let chatOpen = false;
+const chatContainer = document.querySelector('.chat-container');
+const chatToggle = document.querySelector('.chat-toggle');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    chatContainer.classList.toggle('active', chatOpen);
+    
+    chatToggle.style.transition = 'all 0.3s ease-in-out';
+    chatToggle.style.opacity = chatOpen ? '0' : '1';
+    chatToggle.style.visibility = chatOpen ? 'hidden' : 'visible';
+}
 const runButton = document.getElementById('playButton');
 const terminalContainer = document.getElementById('terminalContainer');
 
@@ -166,35 +180,23 @@ socket.onmessage = async (event) => {
     console.log("Received:", event.data);
 
     let rawData;
+    let isJson = false;
     try {
         rawData = JSON.parse(event.data);
+        isJson = true;
     } catch (error) {
-        console.error("Error parsing JSON:", error, "Data received:", event.data);
-        return;
+        rawData = event.data
     }
 
     me = false;
     await monacoReady;
 
-    if (Array.isArray(rawData)) {
-        let changes = [];
-        for (let item of rawData) {
-            if (typeof item === "string") {
-                try {
-                    let parsedItem = JSON.parse(item);
-                    if (Array.isArray(parsedItem)) {
-                        changes.push(...parsedItem);
-                    } else {
-                        console.error("Unexpected inner format:", parsedItem);
-                    }
-                } catch (err) {
-                    console.error("Error parsing inner JSON:", err, "Data:", item);
-                }
-            } else if (typeof item === "object") {
-                changes.push(item);
-            }
-        }
-        applyChanges(changes);
+    if (rawData == "lll") {
+        socket.send(`lll~${editor.getValue()}`);
+    } else if (!isJson && rawData.startsWith("done~")) {
+        let arr = rawData.split("~")
+        let code = arr[1]
+        editor.setValue(code)
     } else if (typeof rawData === "object") {
         applyChanges(rawData);
     }
@@ -224,6 +226,11 @@ async function applyChanges(changes) {
 }
 
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+
+chatToggle.addEventListener('click', toggleChat);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
 
 monacoReady = new Promise((resolve) => {
     require(["vs/editor/editor.main"], function () {
