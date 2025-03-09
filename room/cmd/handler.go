@@ -165,7 +165,7 @@ func output(w http.ResponseWriter, r *http.Request) {
 	if language == "cpp" || language == "c" {
 		res = outputCCpp(roomId, userName, language, code)
 	} else if language == "python" {
-
+		res = outputPython(code)
 	}
 
 	output = OutputResponse{Output: res}
@@ -213,4 +213,21 @@ func outputCCpp(roomId string, userName string, language string, code string) st
 		res = stdOut.String()
 		return res
 	}
+}
+
+func outputPython(code string) string {
+	var stdErr bytes.Buffer
+	var stdOut bytes.Buffer
+
+	cmd := exec.Command("python3")
+	cmd.Stdin = bytes.NewBufferString(code)
+	cmd.Stdout = &stdOut
+	cmd.Stderr = &stdErr
+
+	err := cmd.Run()
+	if err != nil {
+		return stdErr.String()
+	}
+
+	return stdOut.String()
 }
