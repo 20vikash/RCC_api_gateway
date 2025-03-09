@@ -154,7 +154,10 @@ document.getElementById("insertCode").addEventListener("click", async () => {
     const globalLoader = document.getElementById('globalLoader');
     const modal = document.getElementById("modal");
 
+    const loaderText = document.getElementById("loaderText");
+    loaderText.innerText = "Generating the code...";
     globalLoader.classList.remove("hidden");
+    
     closeAllExceptLoader();
 
     try {
@@ -181,7 +184,11 @@ document.getElementById("debugCode").addEventListener("click", async () => {
     const language = document.getElementById("language").value;
 
     const globalLoader = document.getElementById('globalLoader');
+
+    const loaderText = document.getElementById("loaderText");
+    loaderText.innerText = "Enhancing/Debugging the code...";
     globalLoader.classList.remove("hidden");
+
     closeAllExceptLoader();
 
     try {
