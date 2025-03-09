@@ -107,7 +107,7 @@ runButton.addEventListener('click', async () => {
         } else {
             term.write('\x1b[33mExecuting code...\x1b[0m\r\n');
 
-            const response = await fetch(`http://localhost:6969/output?language=${language}&id=${roomId}&username=${username}`, {
+            const response = await fetch(`http://localhost:6969/output?language=${language}&id=${roomId}&username=${urlParams.get("username")}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
