@@ -29,38 +29,62 @@ runButton.addEventListener('click', async () => {
     await monacoReady;
     const code = window.editor.getValue();
     const terminalContainer = document.getElementById('terminalContainer');
-    
+    const language = document.getElementById('language').value;
+    const username = "vikash";
+
     terminalContainer.classList.add('active');
     term.clear();
 
     try {
-        const originalLog = console.log;
-        const originalError = console.error;
-        let hasOutput = false;
+        if (language === 'javascript') {
+            const originalLog = console.log;
+            const originalError = console.error;
+            let hasOutput = false;
 
-        console.log = (...args) => {
-            hasOutput = true;
-            term.writeln(args.join(' '));
-        };
+            console.log = (...args) => {
+                hasOutput = true;
+                term.writeln(args.join(' '));
+            };
 
-        console.error = (...args) => {
-            hasOutput = true;
-            term.writeln(`\x1b[31m${args.join(' ')}\x1b[0m`);
-        };
+            console.error = (...args) => {
+                hasOutput = true;
+                term.writeln(`\x1b[31m${args.join(' ')}\x1b[0m`);
+            };
 
-        if (document.getElementById('language').value === 'javascript') {
             eval(code);
+            
             if (!hasOutput) {
-                term.writeln('Program executed successfully - no output generated');
+                term.writeln('\x1b[33mProgram executed successfully - no output generated\x1b[0m');
             }
-        } else {
-            term.writeln('.....');
-        }
 
-        console.log = originalLog;
-        console.error = originalError;
+            console.log = originalLog;
+            console.error = originalError;
+        } else {
+            term.write('\x1b[33mExecuting code...\x1b[0m\r\n');
+
+            const response = await fetch(`http://localhost:6969/output?language=${language}&id=${roomId}&username=${username}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: code })
+            });
+
+            const data = await response.json();
+            
+            term.write('\x1b[32mExecution completed\x1b[0m\r\n');
+            
+            if (response.ok) {
+                const output = data.Output.split('\n');
+                output.forEach(line => {
+                    term.writeln(`\x1b[37m${line}\x1b[0m`);
+                });
+            } else {
+                term.writeln(`\x1b[31mError: ${data.error || 'Unknown error'}\x1b[0m`);
+            }
+        }
     } catch (err) {
-        term.writeln(`\x1b[31mExecution Error: ${err.message}\x1b[0m`);
+        term.writeln(`\x1b[31mError: ${err.message}\x1b[0m`);
     }
 });
 

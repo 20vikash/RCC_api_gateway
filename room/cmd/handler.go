@@ -212,12 +212,11 @@ func outputCCpp(roomId string, userName string, language string, code string) st
 
 	err = cmd.Run()
 
-	if err == err.(*exec.ExitError) {
-		res = "Took too long to generate the output"
-		return res
-	}
-
 	if err != nil {
+		if err == err.(*exec.ExitError) {
+			res = "Took too long to generate the output"
+			return res
+		}
 		log.Println(err.Error())
 		res = stdErr.String()
 		return res
@@ -241,11 +240,10 @@ func outputPython(code string) string {
 
 	err := cmd.Run()
 
-	if err == err.(*exec.ExitError) {
-		return "Took too long to generate the output"
-	}
-
 	if err != nil {
+		if err == err.(*exec.ExitError) {
+			return "Took too long to generate the output"
+		}
 		return stdErr.String()
 	}
 
