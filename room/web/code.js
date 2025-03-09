@@ -15,6 +15,38 @@ function toggleChat() {
     chatToggle.style.opacity = chatOpen ? '0' : '1';
     chatToggle.style.visibility = chatOpen ? 'hidden' : 'visible';
 }
+
+function addMessage(message, isSelf = false, senderUsername) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isSelf ? 'self' : 'other'}`;
+    
+    const username = document.createElement('div');
+    username.className = 'message-username';
+    username.textContent = isSelf ? 'You' : senderUsername;
+    
+    const timestamp = document.createElement('div');
+    timestamp.className = 'message-timestamp';
+    timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const content = document.createElement('div');
+    content.textContent = message;
+    
+    messageDiv.appendChild(username);
+    messageDiv.appendChild(content);
+    messageDiv.appendChild(timestamp);
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendMessage() {
+    const message = chatInput.value.trim();
+    if (message) {
+        socket.send(`c~${urlParams.get("username")}~${message}`);
+        chatInput.value = '';
+    }
+}
+
 const runButton = document.getElementById('playButton');
 const terminalContainer = document.getElementById('terminalContainer');
 
@@ -44,7 +76,6 @@ runButton.addEventListener('click', async () => {
     const code = window.editor.getValue();
     const terminalContainer = document.getElementById('terminalContainer');
     const language = document.getElementById('language').value;
-    const username = "vikash";
 
     terminalContainer.classList.add('active');
     term.clear();
@@ -190,6 +221,18 @@ socket.onmessage = async (event) => {
 
     me = false;
     await monacoReady;
+
+    if (typeof rawData === 'string' && rawData.startsWith('c~')) {
+        me = true
+        const parts = rawData.split('~');
+        if (parts.length >= 3) {
+            const senderUsername = parts[1];
+            const messageContent = parts.slice(2).join('~');
+            const isSelf = senderUsername === urlParams.get("username");
+            addMessage(`${messageContent}`, isSelf, senderUsername);
+        }
+        return;
+    }
 
     if (rawData == "lll") {
         socket.send(`lll~${editor.getValue()}`);

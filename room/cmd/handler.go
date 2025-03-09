@@ -55,6 +55,15 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		if s[0] == "c" {
+			for _, v := range roomConns[roomID] {
+				if err := v.WriteMessage(websocket.TextMessage, msg); err != nil {
+					fmt.Println(err)
+					return
+				}
+			}
+		}
+
 		if room == "lll" {
 			codeResponse := CodeResponse{
 				Code: message,
