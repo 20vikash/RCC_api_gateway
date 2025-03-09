@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -183,6 +185,9 @@ func outputCCpp(roomId string, userName string, language string, code string) st
 	var stdOut bytes.Buffer
 	var res string
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	if language == "cpp" {
 		language = "c++"
 	}
@@ -201,12 +206,19 @@ func outputCCpp(roomId string, userName string, language string, code string) st
 
 	defer os.Remove(fileName)
 
-	cmd = exec.Command("./" + fileName)
+	cmd = exec.CommandContext(ctx, "./"+fileName)
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 
 	err = cmd.Run()
+
+	if err == err.(*exec.ExitError) {
+		res = "Took too long to generate the output"
+		return res
+	}
+
 	if err != nil {
+		log.Println(err.Error())
 		res = stdErr.String()
 		return res
 	} else {
@@ -219,12 +231,20 @@ func outputPython(code string) string {
 	var stdErr bytes.Buffer
 	var stdOut bytes.Buffer
 
-	cmd := exec.Command("python3")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "python3")
 	cmd.Stdin = bytes.NewBufferString(code)
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 
 	err := cmd.Run()
+
+	if err == err.(*exec.ExitError) {
+		return "Took too long to generate the output"
+	}
+
 	if err != nil {
 		return stdErr.String()
 	}
