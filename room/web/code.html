@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Code Editor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         body {
             background: linear-gradient(135deg, #1e1e2e, #252535);
@@ -67,6 +70,66 @@
             width: 400px;
             text-align: center;
         }
+        #terminalContainer {
+            height: 350px;
+            width: 800px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #1e1e2e;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid #3a3a4a;
+            z-index: 1000;
+            display: none;
+        }
+
+        .terminal-titlebar {
+            background: linear-gradient(135deg, #3a3a4a, #50505f);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #4a5568;
+        }
+
+        .terminal-title {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #00d4ff, #ff00d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #terminalContainer.active {
+            display: block !important;
+        }
+
+        #terminal {
+            padding: 20px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .xterm-rows {
+            padding: 12px !important;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .terminal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1001;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center h-screen text-white">
@@ -84,6 +147,7 @@
                 </select>
             </div>
             <div class="button-group">
+                <button id="playButton" class="play-button">▶</button>
                 <button id="debugCode" class="button">Enhance/Debug</button>
                 <button id="generateCode" class="button">Generate Code</button>
             </div>
@@ -105,187 +169,16 @@
             </div>
         </div>
     </div>
-    
-    <script>
-        let me = true;
-        let pendingChanges = [];
-        let monacoReady;
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomId = urlParams.get("room");
-    
-        const socket = new WebSocket(`ws://192.168.29.119:6969/ws?roomid=${roomId}`);
 
-        document.getElementById("generateCode").addEventListener("click", () => {
-            document.getElementById("modal").classList.add("active");
-        });
-        
-        document.getElementById("closeModal").addEventListener("click", () => {
-            document.getElementById("modal").classList.remove("active");
-        });
+    <div id="terminalContainer">
+        <div class="terminal-titlebar">
+            <span class="terminal-title">Output</span>
+            <div class="terminal-close button" onclick="document.getElementById('terminalContainer').classList.remove('active')">×</div>
+        </div>
+        <div id="terminal"></div>
+    </div>
 
-        document.getElementById("insertCode").addEventListener("click", async () => {
-            const prompt = document.getElementById("generatedCode").value;
-            const language = document.getElementById("language").value;
-
-            await monacoReady
-
-            try {
-                const response = await fetch(`http://localhost:6969/generate?prompt=${encodeURIComponent(prompt)}&language=${encodeURIComponent(language)}&id=${encodeURIComponent(roomId)}`);
-                const data = await response.json();
-
-                if (data.code) {
-                    editor.setValue(data.code);
-                    document.getElementById("modal").classList.remove("active");
-                } else {
-                    alert("Failed to generate code. Please try again.");
-                }
-            } catch (error) {
-                console.error("Error fetching generated code:", error);
-                alert("Error connecting to the server.", error);
-            }
-        });
-
-        document.getElementById("debugCode").addEventListener("click", async () => {
-            await monacoReady
-
-            try {
-                const response = await fetch(`http://localhost:6969/debug?id=${encodeURIComponent(roomId)}&language=${encodeURIComponent(language)}`, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        code: editor.getValue(),
-                    }),
-                    headers: {
-                        "Content-type": "application/json",
-                    },
-                });
-                const data = await response.json();
-
-                if (data.code) {
-                    editor.setValue(data.code);
-                } else {
-                    alert("Failed to generate code. Please try again.");
-                }
-            } catch (error) {
-                console.error("Error fetching generated code:", error);
-                alert("Error connecting to the server.");
-            }
-        });
-    
-        socket.onopen = async () => {
-            console.log("Connected to WebSocket");
-    
-            await monacoReady;
-            socket.send(`${roomId}~load`);
-        };
-    
-        socket.onerror = (error) => {
-            console.error("WebSocket Error:", error);
-        };
-    
-        socket.onmessage = async (event) => {
-            console.log("Received:", event.data);
-
-            let rawData;
-            try {
-                rawData = JSON.parse(event.data);
-            } catch (error) {
-                console.error("Error parsing JSON:", error, "Data received:", event.data);
-                return;
-            }
-
-            me = false;
-            
-            await monacoReady;
-
-            if (Array.isArray(rawData)) {
-                let changes = [];
-                for (let item of rawData) {
-                    if (typeof item === "string") {  
-                        try {
-                            let parsedItem = JSON.parse(item);
-                            if (Array.isArray(parsedItem)) {
-                                changes.push(...parsedItem);
-                            } else {
-                                console.error("Unexpected inner format:", parsedItem);
-                            }
-                        } catch (err) {
-                            console.error("Error parsing inner JSON:", err, "Data:", item);
-                        }
-                    } else if (typeof item === "object") {  
-                        changes.push(item); 
-                    }
-                }
-                applyChanges(changes);
-            } else if (typeof rawData === "object") {
-                applyChanges(rawData);
-            }
-        };
-
-        function sendChanges(changes) {
-            socket.send(`${roomId}~${JSON.stringify(changes)}`);
-        }
-    
-        async function applyChanges(changes) {
-            await monacoReady;
-    
-            console.log("Applying changes:", changes);
-    
-            editor.executeEdits("remote", changes.map(change => ({
-                range: new monaco.Range(
-                    change.range.startLineNumber,
-                    change.range.startColumn,
-                    change.range.endLineNumber,
-                    change.range.endColumn
-                ),
-                text: change.text,
-                forceMoveMarkers: true
-            })));
-    
-            editor.pushUndoStop();
-        }
-    
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
-    
-        monacoReady = new Promise((resolve) => {
-            require(["vs/editor/editor.main"], function () {
-                window.editor = monaco.editor.create(document.getElementById("editor"), {
-                    value: "// Start coding...\nconsole.log('Hello, world!');",
-                    language: "javascript",
-                    theme: "vs-dark",
-                    fontSize: 16,
-                    minimap: { enabled: false },
-                    automaticLayout: true
-                });
-    
-                document.getElementById("language").addEventListener("change", function (event) {
-                    let newLang = event.target.value;
-                    monaco.editor.setModelLanguage(editor.getModel(), newLang);
-                });
-    
-                editor.onDidChangeModelContent((event) => {
-                    if (me) {
-                        let changes = event.changes.map(change => ({
-                            range: {
-                                startLineNumber: change.range.startLineNumber,
-                                startColumn: change.range.startColumn,
-                                endLineNumber: change.range.endLineNumber,
-                                endColumn: change.range.endColumn
-                            },
-                            text: change.text
-                        }));
-    
-                        sendChanges(changes);
-                    } else {
-                        me = true;
-                    }
-                });
-    
-                console.log("Monaco Editor is ready!");
-                resolve();
-            });
-        });
-    </script>
+    <script src="code.js"></script>
     
 </body>
 </html>
