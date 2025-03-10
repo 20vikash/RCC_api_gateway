@@ -7,6 +7,8 @@ const chatToggle = document.querySelector('.chat-toggle');
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 
+let host = "10.10.9.191:6969"
+
 function toggleChat() {
     chatOpen = !chatOpen;
     chatContainer.classList.toggle('active', chatOpen);
@@ -107,7 +109,7 @@ runButton.addEventListener('click', async () => {
         } else {
             term.write('\x1b[33mExecuting code...\x1b[0m\r\n');
 
-            const response = await fetch(`http://localhost:6969/output?language=${language}&id=${roomId}&username=${urlParams.get("username")}`, {
+            const response = await fetch(`http://${host}/output?language=${language}&id=${roomId}&username=${urlParams.get("username")}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -136,7 +138,7 @@ runButton.addEventListener('click', async () => {
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get("room");
 
-const socket = new WebSocket(`ws://192.168.29.119:6969/ws?roomid=${roomId}`);
+const socket = new WebSocket(`ws://${host}/ws?roomid=${roomId}`);
 
 document.getElementById("generateCode").addEventListener("click", () => {
     document.getElementById("modal").classList.add("active");
@@ -161,7 +163,7 @@ document.getElementById("insertCode").addEventListener("click", async () => {
     closeAllExceptLoader();
 
     try {
-        const response = await fetch(`http://localhost:6969/generate?prompt=${encodeURIComponent(prompt)}&language=${encodeURIComponent(language)}&id=${encodeURIComponent(roomId)}`);
+        const response = await fetch(`http://${host}/generate?prompt=${encodeURIComponent(prompt)}&language=${encodeURIComponent(language)}&id=${encodeURIComponent(roomId)}`);
         const data = await response.json();
 
         if (data.code) {
@@ -192,7 +194,7 @@ document.getElementById("debugCode").addEventListener("click", async () => {
     closeAllExceptLoader();
 
     try {
-        const response = await fetch(`http://localhost:6969/debug?id=${encodeURIComponent(roomId)}&language=${encodeURIComponent(language)}`, {
+        const response = await fetch(`http://${host}/debug?id=${encodeURIComponent(roomId)}&language=${encodeURIComponent(language)}`, {
             method: "POST",
             body: JSON.stringify({
                 code: window.editor.getValue(),
@@ -307,7 +309,7 @@ chatInput.addEventListener('keypress', (e) => {
 monacoReady = new Promise((resolve) => {
     require(["vs/editor/editor.main"], function () {
         window.editor = monaco.editor.create(document.getElementById("editor"), {
-            value: "// Start coding...\nprint('Hello world')",
+            value: "# Start coding...\nprint('Hello world')",
             language: "python",
             theme: "vs-dark",
             fontSize: 16,
