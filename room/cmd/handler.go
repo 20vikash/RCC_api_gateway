@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"slices"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -20,7 +22,7 @@ var roomConns = make(map[string][]*websocket.Conn)
 func removeElement(slice []*websocket.Conn, element *websocket.Conn) []*websocket.Conn {
 	for i, v := range slice {
 		if v == element {
-			return append(slice[:i], slice[i+1:]...)
+			return slices.Delete(slice, i, i+1)
 		}
 	}
 	return slice
