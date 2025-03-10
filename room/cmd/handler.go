@@ -17,6 +17,15 @@ import (
 
 var roomConns = make(map[string][]*websocket.Conn)
 
+func removeElement(slice []*websocket.Conn, element *websocket.Conn) []*websocket.Conn {
+	for i, v := range slice {
+		if v == element {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
+
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -37,9 +46,16 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			fmt.Println("read error:", err)
-			break
+			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+				log.Println("Client closed the connection")
+				roomConns[roomID] = removeElement(roomConns[roomID], ws)
+				ws.Close()
+				break
+			} else {
+				log.Println("Error reading message:", err)
+			}
 		}
+
 		fmt.Printf("Received: %s\n", msg)
 		m := string(msg)
 
