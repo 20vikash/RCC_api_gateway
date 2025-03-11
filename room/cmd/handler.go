@@ -18,6 +18,7 @@ import (
 )
 
 var roomConns = make(map[string][]*websocket.Conn)
+var activeRooms = make([]string, 0)
 
 func removeElement(slice []*websocket.Conn, element *websocket.Conn) []*websocket.Conn {
 	for i, v := range slice {
@@ -26,6 +27,17 @@ func removeElement(slice []*websocket.Conn, element *websocket.Conn) []*websocke
 		}
 	}
 	return slice
+}
+
+func createRoom(w http.ResponseWriter, _ *http.Request) {
+	uuid, err := exec.Command("uuidgen").Output()
+	if err != nil {
+		log.Println(err)
+	}
+
+	activeRooms = append(activeRooms, string(uuid))
+
+	w.Write(uuid)
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
