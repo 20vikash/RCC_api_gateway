@@ -1,4 +1,4 @@
-const API_ENDPOINT = 'http://localhost:6969/createroom';
+const API_ENDPOINT = 'http://192.168.29.27:6969/createroom';
 const loadingOverlay = document.querySelector('.loading-overlay');
 const errorMessage = document.getElementById('errorMessage');
 

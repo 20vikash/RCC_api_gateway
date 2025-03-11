@@ -31,6 +31,8 @@ func removeElement(slice []*websocket.Conn, element *websocket.Conn) []*websocke
 
 func createRoom(w http.ResponseWriter, _ *http.Request) {
 	uuid, err := exec.Command("uuidgen").Output()
+	uuid = []byte(strings.TrimSpace(string(uuid)))
+
 	if err != nil {
 		log.Println(err)
 	}

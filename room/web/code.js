@@ -22,15 +22,33 @@ function copyRoomId() {
     const roomId = document.getElementById("roomIdText").textContent;
     if (!roomId) return;
 
-    navigator.clipboard.writeText(roomId).then(() => {
-        const confirmation = document.getElementById("copyConfirmation");
-        confirmation.classList.add("opacity-100", "translate-y-0");
-        setTimeout(() => {
-            confirmation.classList.remove("opacity-100", "translate-y-0");
-        }, 2000);
-    }).catch(err => {
-        console.error("Failed to copy Room ID: ", err);
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(roomId).then(() => {
+            showCopyConfirmation();
+        }).catch(err => {
+            console.error("Failed to copy Room ID: ", err);
+        });
+    } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = roomId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand("copy");
+            showCopyConfirmation();
+        } catch (err) {
+            console.error("Fallback: Copy failed", err);
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+function showCopyConfirmation() {
+    const confirmation = document.getElementById("copyConfirmation");
+    confirmation.classList.add("opacity-100", "translate-y-0");
+    setTimeout(() => {
+        confirmation.classList.remove("opacity-100", "translate-y-0");
+    }, 2000);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
