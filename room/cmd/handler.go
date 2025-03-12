@@ -76,6 +76,12 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
 				log.Println("Client closed the connection")
 				roomConns[roomID] = removeElement(roomConns[roomID], ws)
+
+				if len(roomConns[roomID]) == 0 {
+					i := slices.Index(activeRooms, roomID)
+					activeRooms = slices.Delete(activeRooms, i, i+1)
+				}
+
 				ws.Close()
 				break
 			} else {
