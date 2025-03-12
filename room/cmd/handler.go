@@ -80,6 +80,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 				if len(roomConns[roomID]) == 0 {
 					i := slices.Index(activeRooms, roomID)
 					activeRooms = slices.Delete(activeRooms, i, i+1)
+					delete(roomConns, roomID)
 				}
 
 				ws.Close()
