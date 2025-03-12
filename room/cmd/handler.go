@@ -42,6 +42,17 @@ func createRoom(w http.ResponseWriter, _ *http.Request) {
 	w.Write(uuid)
 }
 
+func joinRoom(w http.ResponseWriter, r *http.Request) {
+	roomID := r.URL.Query().Get("room")
+
+	c := slices.Contains(activeRooms, roomID)
+
+	if !c {
+		http.Error(w, "Room not found", http.StatusBadRequest)
+		return
+	}
+}
+
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

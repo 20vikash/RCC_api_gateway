@@ -1,4 +1,7 @@
-const API_ENDPOINT = 'http://192.168.29.27:6969/createroom';
+const host = "192.168.29.27:6969" 
+
+const API_ENDPOINT_CREATE = `http://${host}/createroom`;
+const API_ENDPOINT_JOIN = `http://${host}/join`;
 const loadingOverlay = document.querySelector('.loading-overlay');
 const errorMessage = document.getElementById('errorMessage');
 
@@ -11,7 +14,7 @@ document.getElementById("roomForm").addEventListener("submit", async function(ev
         await handleRoomCreation(username);
     } else {
         const roomId = document.getElementById("room").value;
-        window.location.href = `/code.html?username=${encodeURIComponent(username)}&room=${encodeURIComponent(roomId)}`;
+        await handleRoomJoin(username, roomId);
     }
 });
 
@@ -20,7 +23,7 @@ async function handleRoomCreation(username) {
         showLoading();
         errorMessage.style.display = 'none';
 
-        const response = await fetch(API_ENDPOINT);
+        const response = await fetch(API_ENDPOINT_CREATE);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -32,6 +35,29 @@ async function handleRoomCreation(username) {
     } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = 'Failed to create room. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        hideLoading();
+    }
+}
+
+async function handleRoomJoin(username, roomId) {
+    try {
+        showLoading();
+        errorMessage.style.display = 'none';
+
+        const response = await fetch(`${API_ENDPOINT_JOIN}?room=${encodeURIComponent(roomId)}`);
+
+        if (!response.ok) {
+            errorMessage.textContent = 'Room not found.';
+            errorMessage.style.display = 'block';
+            return;
+        }
+
+        window.location.href = `/code.html?username=${encodeURIComponent(username)}&room=${encodeURIComponent(roomId)}`;
+    } catch (error) {
+        console.error('Error:', error);
+        errorMessage.textContent = 'An error occurred. Please try again.';
         errorMessage.style.display = 'block';
     } finally {
         hideLoading();
