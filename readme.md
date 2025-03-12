@@ -11,3 +11,9 @@ The **Real-Time Code Collaborator** is a powerful online coding platform that en
 - **Built-in Chat System**: Communicate with team members within the coding environment.
 - **Live Output Console**: Run code directly within the app and see real-time output.
 - **Instant Synchronization**: Any code changes are immediately reflected across all users in the room.
+
+## 📌 Future Enhancements
+- **Full Project Folder Support**: Work on multiple files and switch between them.
+- **Room Persistence**: Save room history and allow users to rejoin anytime.
+- **User Authentication**: Implement login & account system.
+- **Room Management**: Room limits, creator permissions, and deletion.
