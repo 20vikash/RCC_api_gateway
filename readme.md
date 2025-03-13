@@ -17,3 +17,4 @@ The **Real-Time Code Collaborator** is a powerful online coding platform that en
 - **Room Persistence**: Save room history and allow users to rejoin anytime.
 - **User Authentication**: Implement login & account system.
 - **Room Management**: Room limits, creator permissions, and deletion.
+- **Voice Chat**: Enable real-time voice communication for seamless collaboration.
