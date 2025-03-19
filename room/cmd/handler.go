@@ -341,5 +341,9 @@ func outputGolang(roomID string, userName string, code string) string {
 		return stdErr.String()
 	}
 
+	if err := os.Remove(filePath); err != nil {
+		fmt.Println("Error removing file:", err)
+	}
+
 	return stdOut.String()
 }
