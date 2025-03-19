@@ -333,12 +333,12 @@ func outputGolang(roomID string, userName string, code string) string {
 
 	if err := cmd.Run(); err != nil {
 		fmt.Println("Error running file:", err)
-		return stdErr.String()
-	}
 
-	if err := os.Remove(filePath); err != nil {
-		fmt.Println("Error removing file:", err)
-		return err.Error()
+		if err := os.Remove(filePath); err != nil {
+			fmt.Println("Error removing file:", err)
+		}
+
+		return stdErr.String()
 	}
 
 	return stdOut.String()
