@@ -228,8 +228,8 @@ func output(w http.ResponseWriter, r *http.Request) {
 		res = outputCCpp(roomId, userName, language, code)
 	} else if language == "python" {
 		res = outputPython(code)
-	} else if language == "go" {
-		res = outputGolang(roomId, userName, code)
+	} else if language == "go" || language == "php" {
+		res = outputGolangPHP(roomId, userName, code, language)
 	}
 
 	output = OutputResponse{Output: res}
@@ -312,22 +312,35 @@ func outputPython(code string) string {
 	return stdOut.String()
 }
 
-func outputGolang(roomID string, userName string, code string) string {
+func outputGolangPHP(roomID string, userName string, code string, language string) string {
 	var stdErr bytes.Buffer
 	var stdOut bytes.Buffer
+
+	var extension string
+	var cmd *exec.Cmd
+	var file string
+	var filePath string
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	file := roomID + userName
-	filePath := "../sandbox/" + file + ".go"
+	file = roomID + userName
+
+	if language == "go" {
+		extension = ".go"
+		filePath = "../sandbox/" + file + extension
+		cmd = exec.CommandContext(ctx, "go", "run", filePath)
+	} else {
+		extension = ".php"
+		filePath = "../sandbox/" + file + extension
+		cmd = exec.CommandContext(ctx, "php", filePath)
+	}
 
 	if err := os.WriteFile(filePath, []byte(code), 0644); err != nil {
 		fmt.Println("Error writing file:", err)
 		return err.Error()
 	}
 
-	cmd := exec.CommandContext(ctx, "go", "run", filePath)
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 
