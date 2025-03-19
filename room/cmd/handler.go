@@ -96,6 +96,19 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		s := strings.Split(m, "~")
 		room, message := s[0], s[1]
 
+		if s[0] == "change" {
+			newLang := s[1]
+
+			for _, con := range roomConns[roomID] {
+				response := "change" + "~" + newLang
+
+				if err := con.WriteMessage(websocket.TextMessage, []byte(response)); err != nil {
+					fmt.Println(err)
+					return
+				}
+			}
+		}
+
 		if message == "load" {
 			if len(roomConns) > 0 {
 				if err := roomConns[roomID][0].WriteMessage(websocket.TextMessage, []byte("lll")); err != nil {

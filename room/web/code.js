@@ -312,6 +312,16 @@ socket.onmessage = async (event) => {
         return;
     }
 
+    if (typeof rawData === "string" && rawData.startsWith("change~")) {
+        me = true
+
+        const parts = rawData.split("~")
+        const newLang = parts[1]
+
+        monaco.editor.setModelLanguage(window.editor.getModel(), newLang);
+        document.getElementById("language").value = newLang
+    }
+
     if (rawData == "lll") {
         socket.send(`lll~${editor.getValue()}`);
     } else if (!isJson && rawData.startsWith("done~")) {
@@ -367,6 +377,8 @@ monacoReady = new Promise((resolve) => {
         document.getElementById("language").addEventListener("change", function (event) {
             let newLang = event.target.value;
             monaco.editor.setModelLanguage(window.editor.getModel(), newLang);
+
+            socket.send(`change~${newLang}`)
         });
 
         window.editor.onDidChangeModelContent((event) => {
