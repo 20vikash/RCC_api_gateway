@@ -228,6 +228,8 @@ func output(w http.ResponseWriter, r *http.Request) {
 		res = outputCCpp(roomId, userName, language, code)
 	} else if language == "python" {
 		res = outputPython(code)
+	} else if language == "go" {
+		res = outputGolang(roomId, userName, code)
 	}
 
 	output = OutputResponse{Output: res}
@@ -305,6 +307,38 @@ func outputPython(code string) string {
 			return "Took too long to generate the output"
 		}
 		return stdErr.String()
+	}
+
+	return stdOut.String()
+}
+
+func outputGolang(roomID string, userName string, code string) string {
+	var stdErr bytes.Buffer
+	var stdOut bytes.Buffer
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	file := roomID + userName
+	filePath := "../sandbox/" + file + ".go"
+
+	if err := os.WriteFile(filePath, []byte(code), 0644); err != nil {
+		fmt.Println("Error writing file:", err)
+		return err.Error()
+	}
+
+	cmd := exec.CommandContext(ctx, "go", "run", filePath)
+	cmd.Stdout = &stdOut
+	cmd.Stderr = &stdErr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println("Error running file:", err)
+		return stdErr.String()
+	}
+
+	if err := os.Remove(filePath); err != nil {
+		fmt.Println("Error removing file:", err)
+		return err.Error()
 	}
 
 	return stdOut.String()
