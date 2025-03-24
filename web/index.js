@@ -1,4 +1,4 @@
-const host = "192.168.0.188:6969" 
+const host = "localhost:6969" 
 
 const API_ENDPOINT_CREATE = `http://${host}/createroom`;
 const API_ENDPOINT_JOIN = `http://${host}/join`;

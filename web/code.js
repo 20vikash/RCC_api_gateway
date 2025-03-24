@@ -7,7 +7,7 @@ const chatToggle = document.querySelector('.chat-toggle');
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 
-let host = "192.168.0.188:6969"
+let host = "localhost:6969"
 
 function toggleChat() {
     chatOpen = !chatOpen;
