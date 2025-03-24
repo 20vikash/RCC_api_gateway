@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "ai";
+
+package ai;
+
+service AIService {
+  rpc GenerateCode(AIRequest) returns (AIResponse) {}
+  rpc DebugCode(AIRequest) returns (AIResponse) {}
+}
+
+message AIRequest {
+  string code = 1;
+  string prompt = 2;
+  string language = 3;
+}
+
+message AIResponse {
+  string message = 1;
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "output";
+
+package output;
+
+service OutputService {
+  rpc outputCCpp(OutputRequest) returns (OutputResponse) {}
+  rpc outputPython(OutputRequest) returns (OutputResponse) {}
+  rpc outputGolangPHP(OutputRequest) returns (OutputResponse) {}
+}
+
+message OutputRequest {
+  string roomID = 1;
+  string userName = 2;
+  string language = 3;
+  string code = 4;
+}
+
+message OutputResponse {
+  string message = 1;
+}
