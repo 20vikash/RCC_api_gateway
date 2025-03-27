@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "ai";
+option go_package = "/ai";
 
 package ai;
 
