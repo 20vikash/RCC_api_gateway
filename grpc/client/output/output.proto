@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "output";
+option go_package = "/output";
 
 package output;
 
