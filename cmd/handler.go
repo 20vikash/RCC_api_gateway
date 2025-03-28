@@ -198,21 +198,24 @@ func (app *Application) debugCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := exec.Command("python3", "../codellama/debug.py", codeData.Code, language)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	var stdOut bytes.Buffer
-	cmd.Stdout = &stdOut
+	req := &ai.AIRequest{
+		Language: language,
+		Code:     codeData.Code,
+	}
 
-	err := cmd.Run()
+	res, err := app.AIService.DebugCode(ctx, req)
 	if err != nil {
 		log.Println(err)
 	}
 
-	res := &CodeResponse{
-		Code: stdOut.String(),
+	srtc := &CodeResponse{
+		Code: res.Message,
 	}
 
-	jm, err := json.Marshal(res)
+	jm, err := json.Marshal(srtc)
 	if err != nil {
 		log.Println(err)
 	}
