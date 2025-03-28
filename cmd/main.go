@@ -3,12 +3,16 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"room/grpc/client/ai"
+	"room/grpc/client/output"
 
 	"github.com/gorilla/websocket"
 )
 
 type Application struct {
-	Port string
+	Port          string
+	AIService     ai.AIServiceClient
+	OutputService output.OutputServiceClient
 }
 
 var upgrader = websocket.Upgrader{
@@ -17,16 +21,18 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	app := &Application{
-		Port: "6969",
+		Port:          "6969",
+		AIService:     ai.ConnectToAIService(),
+		OutputService: output.ConnectToOutputService(),
 	}
 
 	fs := http.FileServer(http.Dir("../web"))
 	http.Handle("/", fs)
 
 	http.HandleFunc("/ws", handleConnections)
-	http.HandleFunc("/generate", generate)
-	http.HandleFunc("/debug", debugCode)
-	http.HandleFunc("/output", output)
+	http.HandleFunc("/generate", app.generate)
+	http.HandleFunc("/debug", app.debugCode)
+	http.HandleFunc("/output", outputCode)
 	http.HandleFunc("/createroom", createRoom)
 	http.HandleFunc("/join", joinRoom)
 

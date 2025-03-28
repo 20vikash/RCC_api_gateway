@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"room/grpc/client/ai"
 	"strings"
 	"time"
 
@@ -158,25 +159,28 @@ type CodeResponse struct {
 	Code string `json:"code"`
 }
 
-func generate(w http.ResponseWriter, r *http.Request) {
+func (app *Application) generate(w http.ResponseWriter, r *http.Request) {
 	prompt := r.URL.Query().Get("prompt")
 	langauge := r.URL.Query().Get("language")
 
-	cmd := exec.Command("python3", "../codellama/generate.py", prompt, langauge)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	var stdOut bytes.Buffer
-	cmd.Stdout = &stdOut
+	req := &ai.AIRequest{
+		Prompt:   prompt,
+		Language: langauge,
+	}
 
-	err := cmd.Run()
+	res, err := app.AIService.GenerateCode(ctx, req)
 	if err != nil {
 		log.Println(err)
 	}
 
-	res := &CodeResponse{
-		Code: stdOut.String(),
+	strc := &CodeResponse{
+		Code: res.Message,
 	}
 
-	jm, err := json.Marshal(res)
+	jm, err := json.Marshal(strc)
 	if err != nil {
 		log.Println(err)
 	}
@@ -184,7 +188,7 @@ func generate(w http.ResponseWriter, r *http.Request) {
 	w.Write(jm)
 }
 
-func debugCode(w http.ResponseWriter, r *http.Request) {
+func (app *Application) debugCode(w http.ResponseWriter, r *http.Request) {
 	language := r.URL.Query().Get("language")
 
 	var codeData CodeResponse
@@ -220,7 +224,7 @@ type OutputResponse struct {
 	Output string
 }
 
-func output(w http.ResponseWriter, r *http.Request) {
+func outputCode(w http.ResponseWriter, r *http.Request) {
 	language := r.URL.Query().Get("language")
 	roomId := r.URL.Query().Get("id")
 	userName := r.URL.Query().Get("username")

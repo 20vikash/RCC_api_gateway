@@ -7,11 +7,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func ConnectToAIService() *grpc.ClientConn {
+func ConnectToAIService() AIServiceClient {
 	conn, err := grpc.NewClient("localhost:6970", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Println(err)
 	}
 
-	return conn
+	cl := NewAIServiceClient(conn)
+
+	return cl
 }
