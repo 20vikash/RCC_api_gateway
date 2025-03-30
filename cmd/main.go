@@ -32,7 +32,7 @@ func main() {
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/generate", app.generate)
 	http.HandleFunc("/debug", app.debugCode)
-	http.HandleFunc("/output", outputCode)
+	http.HandleFunc("/output", app.outputCode)
 	http.HandleFunc("/createroom", createRoom)
 	http.HandleFunc("/join", joinRoom)
 
