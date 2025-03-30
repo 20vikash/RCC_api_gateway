@@ -12,6 +12,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type Code struct {
+	Code string `json:"code"`
+}
+
 var roomConns = make(map[string][]*websocket.Conn)
 var activeRooms = make([]string, 0)
 
@@ -123,7 +127,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if room == "lll" {
-			codeResponse := CodeResponse{
+			codeResponse := Code{
 				Code: message,
 			}
 

@@ -21,7 +21,7 @@ func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
 	roomId := r.URL.Query().Get("id")
 	userName := r.URL.Query().Get("username")
 
-	var codeData CodeResponse
+	var codeData Code
 	var output OutputResponse
 
 	var res string

@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-type CodeResponse struct {
-	Code string `json:"code"`
-}
-
 func (app *Application) generate(w http.ResponseWriter, r *http.Request) {
 	prompt := r.URL.Query().Get("prompt")
 	langauge := r.URL.Query().Get("language")
@@ -30,7 +26,7 @@ func (app *Application) generate(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	strc := &CodeResponse{
+	strc := &Code{
 		Code: res.Message,
 	}
 
@@ -45,7 +41,7 @@ func (app *Application) generate(w http.ResponseWriter, r *http.Request) {
 func (app *Application) debugCode(w http.ResponseWriter, r *http.Request) {
 	language := r.URL.Query().Get("language")
 
-	var codeData CodeResponse
+	var codeData Code
 
 	if err := json.NewDecoder(r.Body).Decode(&codeData); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -65,7 +61,7 @@ func (app *Application) debugCode(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	srtc := &CodeResponse{
+	srtc := &Code{
 		Code: res.Message,
 	}
 
