@@ -8,7 +8,7 @@ import (
 )
 
 func ConnectToOutputService() OutputServiceClient {
-	conn, err := grpc.NewClient("localhost:6971", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("viksync_output:6971", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Println(err)
 	}

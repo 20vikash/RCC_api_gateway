@@ -8,7 +8,7 @@ import (
 )
 
 func ConnectToAIService() AIServiceClient {
-	conn, err := grpc.NewClient("localhost:6970", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("viksync_ai:6970", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Println(err)
 	}
