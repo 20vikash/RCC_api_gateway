@@ -13,7 +13,7 @@ func (app *Application) generate(w http.ResponseWriter, r *http.Request) {
 	prompt := r.URL.Query().Get("prompt")
 	langauge := r.URL.Query().Get("language")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
 	req := &ai.AIRequest{
@@ -48,7 +48,7 @@ func (app *Application) debugCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
 	req := &ai.AIRequest{
