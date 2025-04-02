@@ -18,8 +18,9 @@ type OutputResponse struct {
 }
 
 type MQNode struct {
-	Code string
-	Jid  string
+	Code     string
+	Jid      string
+	Language string
 }
 
 func createJobID(lang, rid, userName string) string {
@@ -37,12 +38,12 @@ func pushToMq(ctx context.Context, mq *MQNode, channel *amqp.Channel) {
 	}
 
 	q, err := channel.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		"code", // name
+		false,  // durable
+		false,  // delete when unused
+		false,  // exclusive
+		false,  // no-wait
+		nil,    // arguments
 	)
 	if err != nil {
 		log.Println(err)
@@ -86,8 +87,9 @@ func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
 	code := codeData.Code
 
 	mq := &MQNode{
-		Code: code,
-		Jid:  jobID,
+		Code:     code,
+		Jid:      jobID,
+		Language: language,
 	}
 
 	pushToMq(ctx, mq, app.Mq)
