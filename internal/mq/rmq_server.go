@@ -3,10 +3,15 @@ package mq
 import (
 	"fmt"
 	"log"
-	"room/internal/env"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+type MQ struct {
+	User string
+	Pass string
+	Port string
+}
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -14,11 +19,8 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func ConnectToMq() *amqp.Connection {
-	user := env.GetMqUser()
-	pass := env.GetMqPassword()
-
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@viksync_mq:5672/", user, pass))
+func (mq *MQ) ConnectToMq() *amqp.Connection {
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@viksync_mq:%s/", mq.User, mq.Pass, mq.Port))
 	failOnError(err, "Failed to connect to RabbitMQ")
 
 	return conn

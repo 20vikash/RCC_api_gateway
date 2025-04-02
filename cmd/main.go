@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"room/grpc/client/ai"
 	"room/grpc/client/output"
+	"room/internal/env"
+	"room/internal/mq"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,6 +15,7 @@ type Application struct {
 	Port          string
 	AIService     ai.AIServiceClient
 	OutputService output.OutputServiceClient
+	Mq            *mq.MQ
 }
 
 var upgrader = websocket.Upgrader{
@@ -20,10 +23,17 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
+	mq := &mq.MQ{
+		User: env.GetMqUser(),
+		Pass: env.GetMqPassword(),
+		Port: "5672",
+	}
+
 	app := &Application{
 		Port:          "6969",
 		AIService:     ai.ConnectToAIService(),
 		OutputService: output.ConnectToOutputService(),
+		Mq:            mq,
 	}
 
 	fs := http.FileServer(http.Dir("../web"))
