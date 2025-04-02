@@ -93,7 +93,7 @@ func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
 		Language: language,
 	}
 
-	pushToMq(ctx, mq, app.Mq)
+	pushToMq(ctx, mq, app.MqChannel)
 
 	w.Write([]byte(jobID))
 }

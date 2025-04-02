@@ -16,7 +16,7 @@ type Application struct {
 	Port          string
 	AIService     ai.AIServiceClient
 	OutputService output.OutputServiceClient
-	Mq            *amqp.Channel
+	MqChannel     *amqp.Channel
 }
 
 var upgrader = websocket.Upgrader{
@@ -34,7 +34,7 @@ func main() {
 		Port:          "6969",
 		AIService:     ai.ConnectToAIService(),
 		OutputService: output.ConnectToOutputService(),
-		Mq:            mq.ConnectToMq(),
+		MqChannel:     mq.ConnectToMq(),
 	}
 
 	fs := http.FileServer(http.Dir("../web"))
