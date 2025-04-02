@@ -39,7 +39,7 @@ func pushToMq(ctx context.Context, mq *MQNode, channel *amqp.Channel) {
 
 	q, err := channel.QueueDeclare(
 		"code", // name
-		false,  // durable
+		true,   // durable
 		false,  // delete when unused
 		false,  // exclusive
 		false,  // no-wait
@@ -55,8 +55,9 @@ func pushToMq(ctx context.Context, mq *MQNode, channel *amqp.Channel) {
 		false,  // mandatory
 		false,  // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        mqJson,
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         mqJson,
 		})
 	if err != nil {
 		log.Println(err)
