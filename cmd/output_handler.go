@@ -13,10 +13,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type OutputResponse struct {
-	Output string
-}
-
 type MQNode struct {
 	Code     string
 	Jid      string
