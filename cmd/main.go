@@ -9,13 +9,14 @@ import (
 	"room/internal/mq"
 
 	"github.com/gorilla/websocket"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Application struct {
 	Port          string
 	AIService     ai.AIServiceClient
 	OutputService output.OutputServiceClient
-	Mq            *mq.MQ
+	Mq            *amqp.Channel
 }
 
 var upgrader = websocket.Upgrader{
@@ -33,7 +34,7 @@ func main() {
 		Port:          "6969",
 		AIService:     ai.ConnectToAIService(),
 		OutputService: output.ConnectToOutputService(),
-		Mq:            mq,
+		Mq:            mq.ConnectToMq(),
 	}
 
 	fs := http.FileServer(http.Dir("../web"))
