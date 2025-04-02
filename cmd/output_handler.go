@@ -2,16 +2,66 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 
-	o "room/grpc/client/output"
+	"github.com/google/uuid"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type OutputResponse struct {
 	Output string
+}
+
+type MQNode struct {
+	Code string
+	Jid  string
+}
+
+func createJobID(lang, rid, userName string) string {
+	uniqueID := uuid.New().String()
+	data := lang + rid + userName + uniqueID
+	hash := sha256.Sum256([]byte(data))
+
+	return hex.EncodeToString(hash[:])[:16]
+}
+
+func pushToMq(ctx context.Context, mq *MQNode, channel *amqp.Channel) {
+	mqJson, err := json.Marshal(mq)
+	if err != nil {
+		log.Println(err)
+	}
+
+	q, err := channel.QueueDeclare(
+		"hello", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = channel.PublishWithContext(ctx,
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        mqJson,
+		})
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(" [x] Sent")
 }
 
 func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
@@ -19,13 +69,13 @@ func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
 	roomId := r.URL.Query().Get("id")
 	userName := r.URL.Query().Get("username")
 
-	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	var codeData Code
-	var output OutputResponse
+	jobID := createJobID(language, roomId, userName)
 
-	var res *o.OutputResponse
+	var codeData Code
+
 	var err error
 
 	if err = json.NewDecoder(r.Body).Decode(&codeData); err != nil {
@@ -35,35 +85,12 @@ func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
 
 	code := codeData.Code
 
-	req := &o.OutputRequest{
-		RoomID:   roomId,
-		UserName: userName,
-		Language: language,
-		Code:     code,
+	mq := &MQNode{
+		Code: code,
+		Jid:  jobID,
 	}
 
-	if language == "cpp" || language == "c" {
-		res, err = app.OutputService.OutputCCpp(ctx, req)
-		if err != nil {
-			log.Println(err)
-		}
-	} else if language == "python" {
-		res, err = app.OutputService.OutputPython(ctx, req)
-		if err != nil {
-			log.Println(err)
-		}
-	} else if language == "go" || language == "php" {
-		res, err = app.OutputService.OutputGolangPHP(ctx, req)
-		if err != nil {
-			log.Println(err)
-		}
-	}
+	pushToMq(ctx, mq, app.Mq)
 
-	output = OutputResponse{Output: res.Message}
-	j, err := json.Marshal(output)
-	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusInternalServerError)
-	}
-
-	w.Write(j)
+	w.Write([]byte(jobID))
 }
