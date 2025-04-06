@@ -30,11 +30,13 @@ func main() {
 		Port: "5672",
 	}
 
+	con := mq.ConnectToMq()
+
 	app := &Application{
 		Port:          "6969",
 		AIService:     ai.ConnectToAIService(),
 		OutputService: output.ConnectToOutputService(),
-		MqChannel:     mq.ConnectToMq(),
+		MqChannel:     mq.CreateChannel(con),
 	}
 
 	fs := http.FileServer(http.Dir("../web"))
