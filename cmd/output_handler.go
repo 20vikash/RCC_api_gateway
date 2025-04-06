@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -17,6 +18,11 @@ type MQNode struct {
 	Code     string
 	Jid      string
 	Language string
+}
+
+type ResultQ struct {
+	Jid    string
+	Output string
 }
 
 func createJobID(lang, rid, userName string) string {
@@ -92,4 +98,64 @@ func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
 	pushToMq(ctx, mq, app.MqChannel)
 
 	w.Write([]byte(jobID))
+}
+
+func (app *Application) ResultQ(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return
+	}
+
+	jid := r.URL.Query().Get("jid")
+	var res = &ResultQ{}
+
+	q, err := app.MqChannel.QueueDeclare(
+		"result", // name
+		true,     // durable
+		false,    // delete when unused
+		false,    // exclusive
+		false,    // no-wait
+		nil,      // arguments
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	msgs, err := app.MqChannel.Consume(
+		q.Name, // queue
+		"",     // consumer
+		false,  // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	if err != nil {
+		log.Println(err)
+	}
+
+	for d := range msgs {
+		err := json.Unmarshal(d.Body, res)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Printf("Received a message: %s", res.Output)
+		if res.Jid == jid {
+			err = d.Ack(false)
+			if err != nil {
+				log.Println("Failed to ack the message")
+			}
+
+			fmt.Fprint(w, d.Body)
+
+			flusher.Flush()
+			break
+		}
+	}
 }

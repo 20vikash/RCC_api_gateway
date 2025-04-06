@@ -48,6 +48,7 @@ func main() {
 	http.HandleFunc("/output", app.outputCode)
 	http.HandleFunc("/createroom", createRoom)
 	http.HandleFunc("/join", joinRoom)
+	http.HandleFunc("/result", app.ResultQ)
 
 	fmt.Println("Server started on http://localhost:6969")
 	err := http.ListenAndServe(":"+app.Port, nil)
