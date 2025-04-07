@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"golang.org/x/time/rate"
 )
 
 type Application struct {
@@ -17,6 +18,7 @@ type Application struct {
 	AIService     ai.AIServiceClient
 	OutputService output.OutputServiceClient
 	MqChannel     *amqp.Channel
+	Rate          *rate.Limiter
 }
 
 var upgrader = websocket.Upgrader{
