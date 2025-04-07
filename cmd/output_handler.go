@@ -69,6 +69,14 @@ func pushToMq(ctx context.Context, mq *MQNode, channel *amqp.Channel) {
 }
 
 func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
+	ip := r.RemoteAddr
+	limiter := app.getVisitor(ip)
+
+	if !limiter.Allow() {
+		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+		return
+	}
+
 	language := r.URL.Query().Get("language")
 	roomId := r.URL.Query().Get("id")
 	userName := r.URL.Query().Get("username")
