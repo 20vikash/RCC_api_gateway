@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -69,7 +70,12 @@ func pushToMq(ctx context.Context, mq *MQNode, channel *amqp.Channel) {
 }
 
 func (app *Application) outputCode(w http.ResponseWriter, r *http.Request) {
-	ip := r.RemoteAddr
+	ip := r.Header.Get("X-Real-IP")
+	if ip == "" {
+		ip, _, _ = net.SplitHostPort(r.RemoteAddr)
+		log.Println(ip)
+	}
+
 	limiter := app.getVisitor(ip)
 
 	if !limiter.Allow() {
