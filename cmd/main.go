@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"room/grpc/client/ai"
-	"room/grpc/client/output"
 	"room/internal/env"
 	"room/internal/mq"
 
@@ -13,10 +12,9 @@ import (
 )
 
 type Application struct {
-	Port          string
-	AIService     ai.AIServiceClient
-	OutputService output.OutputServiceClient
-	MqChannel     *amqp.Channel
+	Port      string
+	AIService ai.AIServiceClient
+	MqChannel *amqp.Channel
 }
 
 var upgrader = websocket.Upgrader{
@@ -33,10 +31,9 @@ func main() {
 	con := mq.ConnectToMq()
 
 	app := &Application{
-		Port:          "6969",
-		AIService:     ai.ConnectToAIService(),
-		OutputService: output.ConnectToOutputService(),
-		MqChannel:     mq.CreateChannel(con),
+		Port:      "6969",
+		AIService: ai.ConnectToAIService(),
+		MqChannel: mq.CreateChannel(con),
 	}
 
 	fs := http.FileServer(http.Dir("../web"))
