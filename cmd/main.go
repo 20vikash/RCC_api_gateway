@@ -46,6 +46,7 @@ func main() {
 	http.HandleFunc("/createroom", createRoom)
 	http.HandleFunc("/join", joinRoom)
 	http.HandleFunc("/result", app.ResultQ)
+	http.HandleFunc("/test", callbackHandler)
 
 	fmt.Println("Server started on http://localhost:6969")
 	err := http.ListenAndServe(":"+app.Port, nil)

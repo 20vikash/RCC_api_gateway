@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os/exec"
@@ -50,6 +52,43 @@ func joinRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Room not found", http.StatusBadRequest)
 		return
 	}
+}
+
+type SharedObject struct {
+	Type    string `json:"type"`
+	Content string `json:"content"`
+}
+
+type CallbackPayload struct {
+	Room string                  `json:"room"`
+	Data map[string]SharedObject `json:"data"`
+}
+
+func callbackHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read body", http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var payload CallbackPayload
+	if err := json.Unmarshal(body, &payload); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("Room:", payload.Room)
+	for key, obj := range payload.Data {
+		fmt.Printf("Shared Object [%s] (%s):\n%s\n\n", key, obj.Type, obj.Content)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
